@@ -12,9 +12,5 @@ def test_person_full_name():
     pers.last_name = "Mouse"
     assert pers.get_full_name() == "Mickey Mouse"
 
-# def test_rgb_ctor():    
-#     purp = RgbColour(129, 2, 127)
-#     assert purp.red == 129
-#     assert purp.green == 2
-#     assert purp.blue == 127
+
     

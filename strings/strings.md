@@ -64,6 +64,8 @@ Mickey Moose
 ```
 The full name is still stuck with the uncorrected last name.
 
+### Joining Strings
+
 Have a look at the `Person` class in `strings/person.py`, not the `BadPerson` class in this file, and try to complete the `get_full_name` method to return the full name. Use the `+` operator and a single space separator, like `__init__` in the example above does when setting the `full_name` property, and use `return` with that value. You can remove the `pass` statement as that is a placeholder that does nothing. The code will work with it there, but it's usually used to mark a TODO, so leaving it is untidy.
 
 Run the tests by using the following command in the build in terminal:
@@ -71,9 +73,26 @@ Run the tests by using the following command in the build in terminal:
 pytest strings/
 ```
 
-You can also use the `join` method to combine strings, but it's less intuitive for simple strings, and better for lists, as it's called on the separator, so for a full name with a space, you call in on the space and pass it the two names:
+You can also use the `join` method to combine strings, but it's less intuitive for simple strings, and better for lists, as it's called on the separator, so for a full name with a space, you call it on the space and pass it the two names:
 ```py
 full_name = " ".join(first, last)
 ```
+It looks better for e.g. CSV strings, e.g:
+```py
+csv = ",".join(col1, col2, col3, col4)
+```
+### Splitting Strings
+
+If you are only passed a person's full name, you will want to split it using the `split` method, like this:
+```py
+full_name = "Donald Duck"
+parts = full_name.split()
+first = parts[0]
+last = parts[-1]
+```
+Note that using `[-1]` will always return the last element, regardless of how long the sequence is, where using `[1]` would depend on there being at least two elements, and the last name being the second element. So the split shown above will also be correct even for a full name of `Donald Mac Duck`.
+
+Unfortunately Python classes may only have one constructor function, so you can't have one for first and last names and another one that splits a full name onto these two properties. I will cover ways to do this on more practical classes later.
+
 
 
