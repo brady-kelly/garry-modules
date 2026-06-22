@@ -6,3 +6,5 @@ class Person:
     def get_full_name(self):
         pass
     
+    def get_initials(self):
+        pass
