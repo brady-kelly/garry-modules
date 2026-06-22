@@ -71,6 +71,9 @@ Run the tests by using the following command in the build in terminal:
 pytest strings/
 ```
 
-
+You can also use the `join` method to combine strings, but it's less intuitive for simple strings, and better for lists, as it's called on the separator, so for a full name with a space, you call in on the space and pass it the two names:
+```py
+full_name = " ".join(first, last)
+```
 
 
