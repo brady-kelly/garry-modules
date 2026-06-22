@@ -4,8 +4,10 @@
 
 Strings in Python are sequences of unicode characters, and are handled with objects of the [str](https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str) class. String literals are written using matching pairs of single quotes, double quotes, or *triple quotes*. These are sets of three single quotes or three double quotes.
 ```py
-sm1 = '''their-string'''
-sm2 = """your-string"""
+single = 'a string'
+double = "another"
+ts = '''their-string'''
+td = """your-string"""
 ```
 This triple-quoted arrangement allows you to include literal line breaks, and other quotes, in strings:
 ```py
