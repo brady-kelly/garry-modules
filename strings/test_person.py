@@ -13,4 +13,6 @@ def test_person_full_name():
     assert pers.get_full_name() == "Mickey Mouse"
 
 
-    
+def test_person_initials():
+    man = Person("Spider", "Man")
+    assert man.get_initials() == "S.M."    
