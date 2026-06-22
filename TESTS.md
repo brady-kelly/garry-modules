@@ -5,4 +5,4 @@ This project now contains unit tests to check the code your will be writing. To 
 pip install pytest
 ```
 
-Then use the following command to run all your tests:
+Commands to run tests for specific topics are given in the text for those topics.
