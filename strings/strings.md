@@ -66,6 +66,8 @@ The full name is still stuck with the uncorrected last name.
 
 ### Joining Strings
 
+#### Exercise 1
+
 Have a look at the `Person` class in `strings/person.py`, not the `BadPerson` class in this file, and try to complete the `get_full_name` method to return the full name. Use the `+` operator and a single space separator, like `__init__` in the example above does when setting the `full_name` property, and use `return` with that value. You can remove the `pass` statement as that is a placeholder that does nothing. The code will work with it there, but it's usually used to mark a TODO, so leaving it is untidy.
 
 Run the tests by using the following command in the build in terminal:
@@ -101,6 +103,8 @@ first = "Mickey"
 letter_m = first[0]
 letter_y = first[5]
 ```
+
+#### Exercise 2
 
 Have another look at the `Person` class in `strings/person.py`, and try to complete the `get_initials` method to return the initials of a person, i.e. the first character of each name followed by a period, e.g:
 ```py
