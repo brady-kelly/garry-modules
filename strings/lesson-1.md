@@ -98,3 +98,28 @@ Note that using `[-1]` will always return the last element, regardless of how lo
 
 Unfortunately Python classes may only have one constructor function, so you can't have one for first and last names and another one that splits a full name onto these two properties. I will cover ways to do this on more practical classes later.
 
+### Indexing Strings
+The above example for splitting also shows string indexing. Like all sequences, strings can be indexed starting with `0` up to one less than the string length, so:
+```py
+first = "Mickey"
+letter_m = first[0]
+letter_y = first[5]
+```
+
+#### Exercise 2
+
+Have another look at the `Person` class in `strings/person.py`, and try to complete the `get_initials` method to return the initials of a person, i.e. the first character of each name followed by a period, e.g:
+```py
+bill = Person("Bill", "Smith")
+inits = bill.get_initials()
+print(inits)
+```
+Should print
+```
+B.S.
+```
+
+Run the tests by using the following command in the build in terminal:
+```ps
+pytest strings/
+```
