@@ -45,7 +45,7 @@ You create string attributes in classes by assigning string values to variables 
 
 ```py
 class BadPerson:    
-    def __init__(self, first, last) -> None:
+    def __init__(self, first, last):
         self.first_name = first
         self.last_name = last    
         self.full_name = first + " " + last

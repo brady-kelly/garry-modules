@@ -4,6 +4,7 @@
     },
     "cSpell.enabled": true,
     "cSpell.words": [
-        "venv"
+        "venv",
+        "pytest"
     ]
 }
