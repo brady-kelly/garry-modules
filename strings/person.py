@@ -4,7 +4,7 @@ class Person:
         self.last_name = last        
         
     def get_full_name(self):
-        pass
+        return self.first_name + " " + self.last_name
     
     def get_initials(self):
         pass
