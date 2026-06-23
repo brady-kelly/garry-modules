@@ -1,5 +1,5 @@
-from rgb_colour import RgbColour
-from person import Person
+
+from strings.person import Person
 
 def test_person_two_names():
     pers = Person("Mickey", "Moose")

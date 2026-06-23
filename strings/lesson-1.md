@@ -121,5 +121,5 @@ B.S.
 
 Run the tests by using the following command in the build in terminal:
 ```ps
-pytest strings/
+pytest tests/person_tests.py
 ```
