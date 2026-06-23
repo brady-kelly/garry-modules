@@ -1,3 +1,5 @@
+from strings.rgb_colour import RgbColour
+
 class Person:    
     def __init__(self, first, last) -> None:
         self.first_name = first
@@ -8,3 +10,4 @@ class Person:
     
     def get_initials(self):
         pass
+    

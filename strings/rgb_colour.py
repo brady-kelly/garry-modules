@@ -5,3 +5,6 @@ class RgbColour:
         self.green = g
         self.blue = b
         
+    def as_hex(self):
+        pass
+    

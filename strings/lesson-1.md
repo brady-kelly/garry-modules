@@ -123,3 +123,33 @@ Run the tests by using the following command in the build in terminal:
 ```ps
 pytest tests/person_tests.py
 ```
+
+### Formatting Strings
+Calling the `format` method on a string replaces all *replacement fields* in the string with the values passed to the `format` method. A replacement field can be the index of a positional argument passed to `format`, with `0` being the first argument, `1` the next, etc:
+```py
+print("Superman is: {1} {0}".format("Kent", "Clark"))
+```
+A replacement field can also be the name of one of the keyword arguments passed to `format`:
+```py
+print("Superman is: {first} {last}".format(last="Kent", first="Clark"))
+```
+To format integer values as hex strings, add the hex format specifier to a replacement field:
+```py
+print("Number as hex is: {num:02X}".format(num=13))
+```
+The `X` says `num` must be formatted as hex, the `2` says the result must always be padded up to 2 characters, and the `0` says to use a zero for padding, where the default padding character is a space.
+
+#### f-strings
+The f-string is a shortcut way of formatting strings. Prepending `f` before a string literal causes the interpreter to format it using values specified directly inside the replacement fields:
+```py
+num=13
+print(f"Number as hex is: {num:02X}")
+```
+
+#### Exercise 4
+Have a look at the `RgbColour` class in `strings/rgb_colour.py`. Try and complete the `as_hex` method to return a string that starts with a hash, `#`, which is followed by the 2 character, upper case, hex strings for the red, the green, and the blue variables of an instance. 
+
+Test your method by running this test:
+```ps
+pytest tests/hex_test.py
+```

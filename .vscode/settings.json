@@ -5,6 +5,7 @@
     "cSpell.enabled": true,
     "cSpell.words": [
         "venv",
-        "pytest"
+        "pytest",
+        "colour"
     ]
 }
