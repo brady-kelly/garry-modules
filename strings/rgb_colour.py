@@ -6,5 +6,5 @@ class RgbColour:
         self.blue = b
         
     def as_hex(self):
-        return f"#{self.red:02X}{self.green:02X}{self.blue:02X}"
+        pass
     
