@@ -125,33 +125,40 @@ pytest tests/person_tests.py
 ```
 
 ### Formatting Strings
-Calling the `format` method on a string replaces all *replacement fields* in the string with the values passed to the `format` method. A replacement field can be the index of a positional argument passed to `format`, with `0` being the first argument, `1` the next, etc:
-```py
-print("Superman is: {1} {0}".format("Kent", "Clark"))
-```
-A replacement field can also be the name of one of the keyword arguments passed to `format`:
-```py
-print("Superman is: {first} {last}".format(last="Kent", first="Clark"))
-```
-To format integer values as hex strings, add the hex format specifier to a replacement field:
-```py
-print("Number as hex is: {num:02X}".format(num=13))
-```
-The `X` says `num` must be formatted as hex, the `2` says the result must always be padded up to 2 characters, and the `0` says to use a zero for padding, where the default padding character is a space.
 
 #### f-strings
-The f-string is a shortcut way of formatting strings. Prepending `f` before a string literal causes the interpreter to format it using values specified directly inside the replacement fields:
+The simplest way to format strings is with *f-strings*, a shortcut way of formatting strings. Prepending `f` before a string literal causes the interpreter to format and insert all the values specified between braces:
 ```py
-num=13
-print(f"Number as hex is: {num:02X}")
+first = "Clark"
+last = "Kent"
+movies = 8
+print(f"Superman is: {first} {last}, and is the dude in {movies} films.")
+```
+There are tons of ways of formatting numeric values, the simplest being just using a variable with the value, as above. How a number is formatted is decided by the *presentation type*, of which there are many, but here are three examples.
+
+#### Hex strings
+To format a number as a hexadecimal string, use the `x` and `X` presentation types, for lower and upper case, respectively:
+```py
+num = 27
+print(f"Value {num} as upper case hex: {num:02X}")
+```
+
+#### Binary Strings
+```py
+num = 27
+print(f"Value {num} as binary is: {num:08b}")
+```
+
+In both cases, the `0` specifies a character to pad the string with, and the `2` and `8` what size to pad it to. Python defaults to a space in all cases, even binary where it doesn't make too much sense, but it's all the interest of consistency.
+
+So to print an RBG colour as a hex string, like to use in a CSS file, you can use this:
+```py
+purple = RgbColour(130, 4, 124)
+print(f"#{purple.red:02X}{purple.green:02X}{purple.blue:02X}")
 ```
 
 #### Exercise 3
-Have a look at the `RgbColour` class in `strings/rgb_colour.py`. Try and complete the `as_hex` method to return a string that starts with a hash, `#`, followed by the 2 character, upper case, hex strings for each of the red, the green, and the blue variables of an instance. 
+Instead of always getting each of the three parts of an `RgbColour` object like above, complete the `for_css` method of that class, in the `strings/rgb_colour.py` file. Remember that there, you need to use the fields on the internal `self` variable, not fields on the `purple` instance like above.
 
-Check the results of this method by running the script in `strings/run_hex.py`
-
-Test your method by running this test:
-```ps
-pytest tests/hex_test.py
-```
+View the output of your method by opening and running the `strings/run_hex.py` script. 
+Test the method by running the command `pytest tests/hex_test.py`

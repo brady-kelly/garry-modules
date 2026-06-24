@@ -4,7 +4,6 @@ class RgbColour:
         self.red = r
         self.green = g
         self.blue = b
-        
-    def as_hex(self):
-        pass
     
+    def for_css(self):
+        pass
