@@ -147,7 +147,9 @@ print(f"Number as hex is: {num:02X}")
 ```
 
 #### Exercise 4
-Have a look at the `RgbColour` class in `strings/rgb_colour.py`. Try and complete the `as_hex` method to return a string that starts with a hash, `#`, which is followed by the 2 character, upper case, hex strings for the red, the green, and the blue variables of an instance. 
+Have a look at the `RgbColour` class in `strings/rgb_colour.py`. Try and complete the `as_hex` method to return a string that starts with a hash, `#`, followed by the 2 character, upper case, hex strings for each of the red, the green, and the blue variables of an instance. 
+
+Check the results of this method by running the script in `strings/run_hex.py`
 
 Test your method by running this test:
 ```ps
