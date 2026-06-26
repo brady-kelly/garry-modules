@@ -9,6 +9,6 @@ env_prefix = {
 class MailAccount:
     def __init__(self, account_type) -> None:       
         uvar = env_prefix.get(account_type.lower(), "EMAIL") 
-        self.type = account_type
+        self.account_type = account_type
         self.password = os.environ[f"{uvar}_APP_PASSWORD"]
         self.username = os.environ[f"{uvar}_USERNAME"]
