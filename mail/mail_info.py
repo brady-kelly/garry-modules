@@ -11,6 +11,17 @@ class MailInfo:
         self.size = size
         self.msg_id = msg_id
         
+    def print(self):
+        # Truncate values to keep the terminal layout clean
+        print(f"{self.msg_id:<6} | {self.date[:31]:<31} | {self.size:<10} | {self.sender[:30]:<30} | {self.subject[:40]}")
+            
+    
+    @classmethod                
+    def print_info_heading(cls, count):
+        print(f"Found {count} emails in Inbox.\n")        
+        print(f"{'ID':<6} | {'Date':<31} | {'Size (KB)':<10} | {'From':<30} | {'Subject'}")
+        print("-" * 110)          
+        
     @classmethod        
     def from_response_data(cls, response_data):
         

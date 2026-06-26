@@ -23,29 +23,38 @@ class MailClient:
         self.url = url_map[self.account.type]
         self.mail = imaplib.IMAP4_SSL(self.url, 993)
         self.mail.login(self.account.username, self.account.password)
-        
-    def print_meta_heading(self):
-        print(f"{'ID':<6} | {'Date':<31} | {'Size (KB)':<10} | {'From':<30} | {'Subject'}")
-        print("-" * 110)  
-        
-    def fetch_headers(self, id):
+                
+    def fetch_headers(self):
         self.connect()
         if not isinstance(self.mail, imaplib.IMAP4_SSL):
             return
         
-        # We explicitly request only the target headers and the message file size
-        status, response_data = self.mail.fetch(
-            id, "(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)] RFC822.SIZE)"
-        )
-        
+        self.mail.select("inbox", readonly=True)    
+        status, data = self.mail.search(None, "ALL")
         if status != "OK":
-            return        
+            print("Failed to search emails.")
+            return
         
-        info = MailInfo.from_response_data(response_data)
+        email_ids = data[0].split()        
+        metadatas = []
+        for e_id in email_ids:
+            try:
+            
+                status, response_data = self.mail.fetch(
+                    e_id, "(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)] RFC822.SIZE)"
+                )                
+                if status != "OK":
+                    continue  
         
-        return info                      
+                info = MailInfo.from_response_data(response_data)
+                metadatas.append(info)
+                
+            except Exception as e:
+                print(f"Error fetching metadata for email ID {e_id.decode()}: {e}")                
+        
+        return metadatas
                         
-    def get_metadata(self):      
+
         self.connect()
         if not self.mail:
             print(f"Could not connect to: {self.url}")
