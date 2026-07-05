@@ -9,7 +9,7 @@ client = MailClient(account)
 
 infos = client.fetch_headers()
 MailInfo.print_heading(len(infos or []))
-print(f"{len(infos or [])} headers found")
+print(f"{len(infos)} headers found")
 
 for info in infos:
     info.print()

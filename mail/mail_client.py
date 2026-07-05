@@ -30,15 +30,30 @@ class MailClient:
             print(f"Couldn't connect to {self.url}")
             return []
         
-        self.mail.select("inbox", readonly=True)    
-        status, data = self.mail.search(None, "ALL")
+        status, select_data = self.mail.select("inbox", readonly=True)    
         if status != "OK":
-            print("Failed to search emails.")
+            print("Failed to select inbox.")
             return []
         
-        email_ids = data[0].split()        
+        # Extract the integer UIDVALIDITY value
+        import re
+        uid_validity = None
+        for item in select_data:
+            # Ensure item is a valid bytes object before checking contents
+            if isinstance(item, bytes) and b'UIDVALIDITY' in item:
+                match = re.search(r'\d+', item.decode('utf-8'))
+                if match:
+                    uid_validity = int(match.group())
+                    break          
+        
+        status, search_data = self.mail.uid("search", "", "ALL")
+        if status != "OK":
+                print("Failed to search emails.")
+                return []
+    
+        uid_bytes_list = search_data[0].split()
         metadatas = []
-        for e_id in email_ids:
+        for e_id in uid_bytes_list:
             try:
             
                 status, response_data = self.mail.fetch(
@@ -47,7 +62,7 @@ class MailClient:
                 if status != "OK":
                     continue  
         
-                info = MailInfo.from_response_data(e_id, response_data)
+                info = MailInfo.from_response_data(e_id, uid_validity, response_data)
                 metadatas.append(info)
                 
             except Exception as e:
