@@ -46,7 +46,7 @@ class MailClient:
                     uid_validity = int(match.group())
                     break          
         
-        status, search_data = self.mail.uid("search", "", "ALL")
+        status, search_data = self.mail.uid("search", "ALL")
         if status != "OK":
                 print("Failed to search emails.")
                 return []
