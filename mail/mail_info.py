@@ -17,13 +17,13 @@ class MailInfo:
             
     
     @classmethod                
-    def print_info_heading(cls, count):
+    def print_heading(cls, count):
         print(f"Found {count} emails in Inbox.\n")        
         print(f"{'ID':<6} | {'Date':<31} | {'Size (KB)':<10} | {'From':<30} | {'Subject'}")
         print("-" * 110)          
         
     @classmethod        
-    def from_response_data(cls, response_data):
+    def from_response_data(cls, email_id, response_data):
         
         raw_headers = b""
         size_bytes = 0        
@@ -54,6 +54,6 @@ class MailInfo:
         _, from_email = parseaddr(from_raw)
         
         size_kb = round(size_bytes / 1024, 2)
-        msg_id = id.decode()      
+        msg_id = email_id.decode()      
         
         return cls(date_val, subject_val, from_email, size_kb, msg_id)        

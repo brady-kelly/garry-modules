@@ -1,12 +1,10 @@
 import imaplib
 from email.parser import BytesHeaderParser
 from email.utils import parseaddr
-
-from mail.mail_info import MailInfo
-
+from mail_info import MailInfo
 
 url_map = {
-    "gmail": "://gmail.com",
+    "gmail": "imap.gmail.com",
     "hotmail": "//office365.com"
 }
 
@@ -17,23 +15,26 @@ class MailClient:
         self.mail = None
         
     def connect(self):
-        if not self.account.account_type in url_map:
-            print(f"No url defined for account type: {self.account.account_type}")
+        atkey = self.account.account_type.lower()
+        if not atkey in url_map:
+            print(f"No url defined for account type: {atkey}")
             return
-        self.url = url_map[self.account.type]
+        self.url = url_map[atkey]
+        print(f"Connecting to host: {self.url}")
         self.mail = imaplib.IMAP4_SSL(self.url, 993)
         self.mail.login(self.account.username, self.account.password)
                 
     def fetch_headers(self):
         self.connect()
         if not isinstance(self.mail, imaplib.IMAP4_SSL):
-            return
+            print(f"Couldn't connect to {self.url}")
+            return []
         
         self.mail.select("inbox", readonly=True)    
         status, data = self.mail.search(None, "ALL")
         if status != "OK":
             print("Failed to search emails.")
-            return
+            return []
         
         email_ids = data[0].split()        
         metadatas = []
@@ -46,10 +47,13 @@ class MailClient:
                 if status != "OK":
                     continue  
         
-                info = MailInfo.from_response_data(response_data)
+                info = MailInfo.from_response_data(e_id, response_data)
                 metadatas.append(info)
                 
             except Exception as e:
+                print(f"CRASH DETECTED. e_id is actually: {repr(e_id)}")
+                print(f"The original error that triggered the except block was: {e}")
+                
                 print(f"Error fetching metadata for email ID {e_id.decode()}: {e}")                
         
         return metadatas

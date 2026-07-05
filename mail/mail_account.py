@@ -1,5 +1,8 @@
 import os
 from enum import StrEnum, auto
+from dotenv import load_dotenv
+
+load_dotenv()
 
 env_prefix = {
     "gmail": "GMAIL",
