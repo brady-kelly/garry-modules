@@ -73,37 +73,3 @@ class MailClient:
         
         return metadatas
                         
-
-        self.connect()
-        if not self.mail:
-            print(f"Could not connect to: {self.url}")
-            return
-        # Open the Inbox in Read-Only mode to protect read/unread status
-        self.mail.select("inbox", readonly=True)
-        
-        # 2. Search for all emails
-        status, data = self.mail.search(None, "ALL")
-        if status != "OK":
-            print("Failed to search emails.")
-            return
-            
-        email_ids = data[0].split()
-        print(f"Found {len(email_ids)} emails in Inbox.\n")
-        self.print_meta_heading()
-        
-            # 3. Fetch header fields and size for each email
-        for e_id in email_ids:
-            try:
-                # We explicitly request only the target headers and the message file size
-                status, response_data = self.mail.fetch(
-                    e_id, "(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT)] RFC822.SIZE)"
-                )
-                
-                if status != "OK":
-                    continue
-
-                raw_headers = b""
-                size_bytes = 0            
-                
-            except Exception as e:
-                pass
