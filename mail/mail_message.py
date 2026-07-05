@@ -1,5 +1,5 @@
 class MailMessage:
     
-    def __init__(self, info, data) -> None:
+    def __init__(self, info, raw_body) -> None:
         self.info = info
-        self.data = data
+        self.raw_body = raw_body
