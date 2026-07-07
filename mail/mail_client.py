@@ -2,7 +2,6 @@ import imaplib
 from email.parser import BytesHeaderParser
 from email.utils import parseaddr
 from mail_result import MailResult
-from mail_message import MailMessage
 from message_wrapper import MessageWrapper
 
 url_map = {
@@ -56,10 +55,9 @@ class MailClient:
         uid_bytes_list = search_data[0].split()
         wrappers = []
         errors = []
-        print(f"Search found {len(uid_bytes_list)} Ids")
         for uid in uid_bytes_list:
             try:            
-                status, response_data = self.mail.fetch(
+                status, response_data = self.mail.uid("fetch", 
                     uid, "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE)"
                 )                
                 if status == 'OK' and response_data:
@@ -76,30 +74,24 @@ class MailClient:
         else:
             return MailResult(True, f"Fetch headers for folder {folder}.", wrappers)  
                         
-    # def fetch_message(self, info):
-    #     self.connect()
-    #     if not isinstance(self.mail, imaplib.IMAP4_SSL):
-    #         print(f"Couldn't connect to {self.url}")
-    #         return None
+    def fetch_message(self, wrapper: MessageWrapper) -> MailResult:
+        self.connect()
+        if not isinstance(self.mail, imaplib.IMAP4_SSL):
+            return MailResult(False, f"Couldn't connect to {self.url}")
+                
+        try:            
+            status, response_data = self.mail.fetch(
+                wrapper.uid , "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE)"
+            )                
+            if status == 'OK' and response_data:
+                wrapper = MessageWrapper.from_response_data(wrapper.uid, wrapper.uid_validity, response_data)
+                return MailResult(True, f"Fetched message for id {wrapper.uid}.", [wrapper])  
+            else:
+                return MailResult(False, f"Failed to fetch message for id {wrapper.uid}.")  
+            
+        except Exception as e:   
+            return MailResult(False, f"Error fetching metadata for email ID {wrapper.uid}: {e}")             
         
-    #     res, msg_data = self.mail.uid("fetch", info.uid, "(RFC822)")
-    #     if res != "OK":
-    #         return None
-        
-    #     raw_email = b""
-        
-    #     # Safely find the tuple containing the email data bytes
-    #     for part in msg_data:
-    #         if isinstance(part, tuple):
-    #             raw_email = part[1]
-    #             break
-
-    #     if not raw_email:
-    #         print(f"Failed to extract raw email content for UID {info.uid}")
-    #         return None
-
-    #     # Return your MailMessage instance combining your metadata and the body bytes
-    #     return MailMessage(info=info, raw_body=raw_email)        
     
     # def append_message(self, folder_name: str, message: MailMessage) -> bool:
     #     """

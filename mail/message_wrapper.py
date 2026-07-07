@@ -1,10 +1,12 @@
+from email.message import EmailMessage
 from email.parser import BytesHeaderParser
+from email.policy import default
 from email.utils import parseaddr
 import re
 
 class MessageWrapper:
     
-    def __init__(self, msg, size, uid, uid_validity):
+    def __init__(self, msg: EmailMessage, size: int, uid, uid_validity):
         self.msg = msg
         self.sender = msg['From']
         self.subject = msg['Subject']
@@ -51,7 +53,7 @@ class MessageWrapper:
         email_size = int(size_match.group(1)) if size_match else 0   
         
         # 3. Parse headers lightweightly (falls back to empty message if no bytes found)
-        msg = BytesHeaderParser().parsebytes(raw_bytes if raw_bytes else b"") 
+        msg = BytesHeaderParser(policy=default).parsebytes(raw_bytes if raw_bytes else b"") 
         
         return cls(
             msg=msg,
