@@ -1,4 +1,4 @@
-from mail_info import MailInfo
+from message_wrapper import MessageWrapper
 from mail_account import MailAccount
 from mail_client import MailClient
 
@@ -7,9 +7,12 @@ account = MailAccount(box)
 
 client = MailClient(account)
 
-infos = client.fetch_headers()
-MailInfo.print_heading(len(infos or []))
-print(f"{len(infos)} headers found")
+result = client.fetch_headers()
+if not result.success:
+    print(result.message)
+else:
+    MessageWrapper.print_heading(len(result.result_list))
+    print(f"{len(result.result_list)} headers found")
 
-for info in infos:
-    info.print()
+    for info in result.result_list:
+        info.print()
