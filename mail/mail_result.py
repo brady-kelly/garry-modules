@@ -1,7 +1,7 @@
 class MailResult:
     
-    def __init__(self, success: bool, message: str, result_list = []) -> None:
+    def __init__(self, success: bool, message: str, result_list = [], error_list = []) -> None:
         self.success = success
         self.message = message
         self.result_list = result_list
-        self.error_list = []
+        self.error_list = error_list

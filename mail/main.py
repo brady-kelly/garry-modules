@@ -10,6 +10,9 @@ client = MailClient(account)
 result = client.fetch_headers()
 if not result.success:
     print(result.message)
+    if len(result.error_list) > 0:
+        for err in result.error_list:
+            print(err)
 else:
     MessageWrapper.print_heading(len(result.result_list))
     print(f"{len(result.result_list)} headers found")

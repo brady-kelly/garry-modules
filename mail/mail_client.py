@@ -71,7 +71,10 @@ class MailClient:
             except Exception as e:                
                 errors.append(f"Error fetching metadata for email ID {uid.decode()}: {e}")                
         
-        return MailResult(True, f"Fetch headers for folder {folder}.", wrappers)  
+        if len(errors) > 0:
+            return MailResult(False, f"{len(errors)} errors fetching headers for folder {folder}: ", wrappers)  
+        else:
+            return MailResult(True, f"Fetch headers for folder {folder}.", wrappers)  
                         
     # def fetch_message(self, info):
     #     self.connect()
