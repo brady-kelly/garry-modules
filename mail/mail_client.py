@@ -72,7 +72,7 @@ class MailClient:
                 errors.append(f"Error fetching metadata for email ID {uid.decode()}: {e}")                
         
         if len(errors) > 0:
-            return MailResult(False, f"{len(errors)} errors fetching headers for folder {folder}: ", wrappers)  
+            return MailResult(False, f"{len(errors)} errors fetching headers for folder {folder}: ", wrappers, errors)  
         else:
             return MailResult(True, f"Fetch headers for folder {folder}.", wrappers)  
                         
