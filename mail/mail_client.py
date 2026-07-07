@@ -1,7 +1,7 @@
 import imaplib
 from email.parser import BytesHeaderParser
 from email.utils import parseaddr
-from mail_result import MailResult
+from mail_operation_result import MailOperationResult
 from message_wrapper import MessageWrapper
 
 url_map = {
@@ -40,26 +40,24 @@ class MailClient:
     def fetch_headers(self, folder = "inbox"):
         self.connect()
         if not isinstance(self.mail, imaplib.IMAP4_SSL):
-            return MailResult(False, f"Couldn't connect to {self.url}")
+            return MailOperationResult(False, f"Couldn't connect to {self.url}")
         
         status, select_data = self.mail.select(folder, readonly=True)    
         if status != "OK":
-            return MailResult(False, f"Failed to select folder {folder}.")         
+            return MailOperationResult(False, f"Failed to select folder {folder}.")         
         
         status, search_data = self.mail.uid("search", "ALL")
         if status != "OK":
-            return MailResult(False, "Failed to search emails.")
+            return MailOperationResult(False, "Failed to search emails.")
         
-        uid_validity = self.get_uid_validity(select_data)
+        uid_validity = self.get_uid_validity(select_data) or 0
     
         uid_bytes_list = search_data[0].split()
         wrappers = []
         errors = []
         for uid in uid_bytes_list:
             try:            
-                status, response_data = self.mail.uid("fetch", 
-                    uid, "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE)"
-                )                
+                status, response_data = self.mail.uid("fetch", uid, "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE)")                
                 if status == 'OK' and response_data:
                     info = MessageWrapper.from_response_data(uid, uid_validity, response_data)
                     wrappers.append(info)
@@ -70,27 +68,25 @@ class MailClient:
                 errors.append(f"Error fetching metadata for email ID {uid.decode()}: {e}")                
         
         if len(errors) > 0:
-            return MailResult(False, f"{len(errors)} errors fetching headers for folder {folder}: ", wrappers, errors)  
+            return MailOperationResult(False, f"{len(errors)} errors fetching headers for folder {folder}: ", wrappers, errors)  
         else:
-            return MailResult(True, f"Fetch headers for folder {folder}.", wrappers)  
+            return MailOperationResult(True, f"Fetch headers for folder {folder}.", wrappers)  
                         
-    def fetch_message(self, wrapper: MessageWrapper) -> MailResult:
+    def fetch_message(self, wrapper: MessageWrapper) -> MailOperationResult:
         self.connect()
         if not isinstance(self.mail, imaplib.IMAP4_SSL):
-            return MailResult(False, f"Couldn't connect to {self.url}")
+            return MailOperationResult(False, f"Couldn't connect to {self.url}")
                 
         try:            
-            status, response_data = self.mail.fetch(
-                wrapper.uid , "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE)"
-            )                
+            status, response_data = self.mail.uid("fetch", wrapper.uid.decode('utf-8') , "(RFC822)")                
             if status == 'OK' and response_data:
                 wrapper = MessageWrapper.from_response_data(wrapper.uid, wrapper.uid_validity, response_data)
-                return MailResult(True, f"Fetched message for id {wrapper.uid}.", [wrapper])  
+                return MailOperationResult(True, f"Fetched message for id {wrapper.uid}.", [wrapper])  
             else:
-                return MailResult(False, f"Failed to fetch message for id {wrapper.uid}.")  
+                return MailOperationResult(False, f"Failed to fetch message for id {wrapper.uid}.")  
             
         except Exception as e:   
-            return MailResult(False, f"Error fetching metadata for email ID {wrapper.uid}: {e}")             
+            return MailOperationResult(False, f"Error fetching metadata for email ID {wrapper.uid}: {e}")             
         
     
     # def append_message(self, folder_name: str, message: MailMessage) -> bool:
@@ -129,5 +125,3 @@ class MailClient:
     #         uid_str = message.info.uid.decode(errors='ignore') if message and message.info else "Unknown"
     #         print(f"Exception raised while trying to append email UID {uid_str}: {e}")
     #         return False
-    
-    
