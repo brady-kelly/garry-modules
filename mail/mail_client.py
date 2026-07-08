@@ -1,12 +1,16 @@
 import imaplib
 from email.parser import BytesHeaderParser
 from email.utils import parseaddr
+import os
+
+import msal
 from mail_operation_result import MailOperationResult
 from message_wrapper import MessageWrapper
 
 url_map = {
     "gmail": "imap.gmail.com",
-    "hotmail": "//office365.com"
+    "hotmail": "office365.com",
+    "outlook": "outlook.office365.com"
 }
 
 class MailClient:
@@ -22,8 +26,32 @@ class MailClient:
             return
         self.url = url_map[atkey]
         print(f"Connecting to host: {self.url}")
-        self.mail = imaplib.IMAP4_SSL(self.url, 993)
-        self.mail.login(self.account.username, self.account.password)
+        self.mail = imaplib.IMAP4_SSL(self.url)
+        if atkey == "outlook":
+            client_id = os.environ["CLIENT_ID"]
+            tenant_id = os.environ["TENANT_ID"]
+            OUTLOOK_USERNAME = os.environ["OUTLOOK_USERNAME"]
+            temp_folder = os.environ["TEMP_FOLDER"]
+
+            AUTHORITY = f"https://login.microsoftonline.com/{tenant_id}"
+            SCOPES = [
+                "https://outlook.office.com/IMAP.AccessAsUser.All",
+                "https://outlook.office.com/SMTP.Send"
+            ]
+
+            app = msal.PublicClientApplication(client_id, authority=AUTHORITY)
+            flow = app.initiate_device_flow(scopes=SCOPES)
+            if "user_code" not in flow:
+                raise Exception("Could not initiate authentication flow.")
+            print(flow["message"]) 
+            token_result = app.acquire_token_by_device_flow(flow)
+            if "access_token" not in token_result:
+                raise Exception(f"Login failed: {token_result.get('error_description')}")
+            access_token = token_result["access_token"]
+            auth_string = f"user={OUTLOOK_USERNAME}\x01auth=Bearer {access_token}\x01\x01".encode('utf-8')    
+            self.mail.authenticate("XOAUTH2", lambda x: auth_string)
+        else:
+            self.mail.login(self.account.username, self.account.password)    
         
     def get_uid_validity(self, select_data):
         import re
@@ -55,7 +83,7 @@ class MailClient:
         uid_bytes_list = search_data[0].split()
         wrappers = []
         errors = []
-        for uid in uid_bytes_list:
+        for uid in uid_bytes_list[:20]:
             try:            
                 status, response_data = self.mail.uid("fetch", uid, "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE)")                
                 if status == 'OK' and response_data:

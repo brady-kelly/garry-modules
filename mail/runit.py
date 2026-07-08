@@ -4,7 +4,7 @@ from mail_account import MailAccount
 from mail_client import MailClient
 
 def run_ops():
-    box = "Gmail"
+    box = "Outlook"
     account = MailAccount(box)
 
     client = MailClient(account)

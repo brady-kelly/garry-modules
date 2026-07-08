@@ -6,12 +6,13 @@ load_dotenv()
 
 env_prefix = {
     "gmail": "GMAIL",
-    "hotmail": "HOTMAIL"
+    "hotmail": "HOTMAIL",
+    "outlook": "OUTLOOK"
 }
 
 class MailAccount:
-    def __init__(self, account_type) -> None:       
-        uvar = env_prefix.get(account_type.lower(), "EMAIL") 
-        self.account_type = account_type
-        self.password = os.environ[f"{uvar}_APP_PASSWORD"]
+    def __init__(self, account_type: str) -> None:     
+        self.account_type = account_type.lower()
+        uvar = env_prefix.get(self.account_type, "EMAIL") 
+        self.password = os.environ[f"{uvar}_APP_PASSWORD"] if self.account_type != "outlook" else None
         self.username = os.environ[f"{uvar}_USERNAME"]
