@@ -16,14 +16,14 @@ class MessageWrapper:
         self.uid_validity = uid_validity
         
     def print(self):
-        print(f"{self.date[:31]:<31} | {self.size:<10} | {self.sender[:30]:<30} | {self.subject[:40]}")
+        print(f"{self.date[:31]:<31} | {self.size:<10} | {self.sender[:40]:<40} | {self.subject[:40]}")
             
     
     @classmethod                
     def print_heading(cls, count):
         print(f"Found {count} emails in Inbox.\n")        
-        print(f"{'Date':<31} | {'Size (KB)':<10} | {'From':<30} | {'Subject'}")
-        print("-" * 110)          
+        print(f"{'Date':<31} | {'Size (KB)':<10} | {'From':<40} | {'Subject'}")
+        print("-" * 130)          
 
     @classmethod
     def from_response_data(cls, uid, uid_validity, response_data):
