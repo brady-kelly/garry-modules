@@ -150,6 +150,16 @@ class MailClient:
     #         # 2. Append the raw email data directly to the target folder
     #         # We use None for flags and internal date to let the server auto-assign them
     #         append_res, _ = self.mail.append(folder_name, "", "", raw_email)
+    
+# # Pass it directly to append by joining the list items with a space
+# dest_mail.append(
+#     f'"{DEST_FOLDER}"', 
+#     " ".join(email_flags),  # e.g., "\\Seen \\Flagged"
+#     internal_date, 
+#     raw_email_bytes
+# )    
+    
+    
             
     #         # 3. Handle and report tracking success
     #         uid_str = message.info.uid.decode(errors='ignore')
