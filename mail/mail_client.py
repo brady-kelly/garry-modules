@@ -30,7 +30,6 @@ class MailClient:
         if atkey == "outlook":
             client_id = os.environ["CLIENT_ID"]
             tenant_id = os.environ["TENANT_ID"]
-            OUTLOOK_USERNAME = os.environ["OUTLOOK_USERNAME"]
             temp_folder = os.environ["TEMP_FOLDER"]
 
             AUTHORITY = f"https://login.microsoftonline.com/{tenant_id}"
@@ -40,15 +39,27 @@ class MailClient:
             ]
 
             app = msal.PublicClientApplication(client_id, authority=AUTHORITY)
-            flow = app.initiate_device_flow(scopes=SCOPES)
-            if "user_code" not in flow:
-                raise Exception("Could not initiate authentication flow.")
-            print(flow["message"]) 
-            token_result = app.acquire_token_by_device_flow(flow)
-            if "access_token" not in token_result:
-                raise Exception(f"Login failed: {token_result.get('error_description')}")
+            
+            # flow = app.initiate_device_flow(scopes=SCOPES)
+            # if "user_code" not in flow:
+            #     raise Exception("Could not initiate authentication flow.")
+            # print(flow["message"]) 
+            # token_result = app.acquire_token_by_device_flow(flow)
+            # if "access_token" not in token_result:
+            #     raise Exception(f"Login failed: {token_result.get('error_description')}")
+            
+            # This pops open a local browser tab pre-filled with your email address
+            token_result = app.acquire_token_interactive(
+                scopes=SCOPES,
+                login_hint=self.account.username
+            )
+            
             access_token = token_result["access_token"]
-            auth_string = f"user={OUTLOOK_USERNAME}\x01auth=Bearer {access_token}\x01\x01".encode('utf-8')    
+            
+            if "access_token" not in token_result:
+                raise Exception(f"Login failed: {token_result.get('error_description')}")            
+            
+            auth_string = f"user={self.account.username}\x01auth=Bearer {access_token}\x01\x01".encode('utf-8')    
             self.mail.authenticate("XOAUTH2", lambda x: auth_string)
         else:
             self.mail.login(self.account.username, self.account.password)    
