@@ -96,7 +96,7 @@ class MailClient:
         errors = []
         for uid in uid_bytes_list[:20]:
             try:            
-                status, response_data = self.mail.uid("fetch", uid, "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE)")                
+                status, response_data = self.mail.uid("fetch", uid, "(FLAGS BODY.PEEK[HEADER] RFC822.SIZE INTERNALDATE)")                
                 if status == 'OK' and response_data:
                     info = MessageWrapper.from_response_data(uid, uid_validity, response_data)
                     wrappers.append(info)
@@ -117,7 +117,7 @@ class MailClient:
             return MailOperationResult(False, f"Couldn't connect to {self.url}")
                 
         try:            
-            status, response_data = self.mail.uid("fetch", wrapper.uid.decode('utf-8') , "(RFC822)")                
+            status, response_data = self.mail.uid("fetch", wrapper.uid.decode('utf-8') , "(RFC822 FLAGS INTERNALDATE)")                
             if status == 'OK' and response_data:
                 wrapper = MessageWrapper.from_response_data(wrapper.uid, wrapper.uid_validity, response_data)
                 return MailOperationResult(True, f"Fetched message for id {wrapper.uid}.", [wrapper])  
