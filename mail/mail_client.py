@@ -128,6 +128,20 @@ class MailClient:
             return MailOperationResult(False, f"Error fetching metadata for email ID {wrapper.uid}: {e}")             
         
     
+    def append_message(self, folder, wrapper: MessageWrapper):
+        self.connect()
+        if not isinstance(self.mail, imaplib.IMAP4_SSL):
+            return MailOperationResult(False, f"Couldn't connect to {self.url}")
+        
+        formatted_flags = " ".join(wrapper.flags) if wrapper.flags else None
+        
+        self.mail.append(
+            f'"{folder}"', 
+            " ".join(wrapper.flags),  # e.g., "\\Seen \\Flagged"
+            str(wrapper.internal_date), 
+            wrapper.raw_content
+)                
+    
     # def append_message(self, folder_name: str, message: MailMessage) -> bool:
     #     """
     #     Appends a MailMessage object directly to the specified folder.

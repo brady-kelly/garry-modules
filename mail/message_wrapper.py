@@ -8,7 +8,7 @@ import time
 
 class MessageWrapper:
     
-    def __init__(self, msg: EmailMessage, size: int, uid: bytes, uid_validity: int, flags: list[str], internal_date: str | None):
+    def __init__(self, msg: EmailMessage, size: int, uid: bytes, uid_validity: int, flags: list[str], internal_date: str | None, raw_content: bytes):
         self.msg = msg
         self.sender = msg['From']
         self.subject = msg['Subject']
@@ -16,7 +16,9 @@ class MessageWrapper:
         self.size = size
         self.uid = uid
         self.uid_validity = uid_validity
-        self.internal_date = internal_date
+        self.flags = flags
+        self.internal_date = internal_date,
+        self.raw_content = raw_content=raw_content
         
     def print(self):
         print(f"{self.date[:31]:<31} | {self.size:<10} | {self.sender[:40]:<40} | {self.subject[:40]}")
@@ -33,21 +35,24 @@ class MessageWrapper:
         envelope_str = ""
         raw_bytes = b""        
         
-        # Safely locate the header data without strict unpacking
+        # 1. Look inside the IMAP tuple response blocks
         for item in response_data:
-            if isinstance(item, tuple):
-                # Safe way to handle tuples of any length (2, 3, or more items)
-                if len(item) >= 2:
-                    # The first item is almost always the metadata string
-                    envelope_str = item[0].decode('utf-8', errors='ignore') if isinstance(item[0], bytes) else str(item[0])
-                    # The second item contains the actual email text/headers
+            if isinstance(item, tuple) and len(item) >= 2:
+                # Extract the metadata string from slot 0
+                if isinstance(item[0], bytes):
+                    envelope_str = item[0].decode('utf-8', errors='ignore')
+                else:
+                    envelope_str = str(item[0])
+                
+                # Extract the actual data payload from slot 1
+                if isinstance(item[1], bytes):
                     raw_bytes = item[1]
                     break
                     
-        # If we didn't extract any bytes, look for single-item byte buffers
+        # 2. Fallback check for raw byte buffers outside of tuples
         if not raw_bytes:
             for item in response_data:
-                if isinstance(item, bytes) and b"HEADER" in item:
+                if isinstance(item, bytes):
                     raw_bytes = item
                     break
 
@@ -65,18 +70,14 @@ class MessageWrapper:
         # Looks for: INTERNALDATE "dd-Mmm-yyyy hh:mm:ss +zzzz"
         date_match = re.search(r'INTERNALDATE\s+"([^"]+)"', envelope_str)
         
-        # 2. Convert it directly into an IMAP append-compatible formatted string
-        # If no internal date is found, default to None (server uses current time)
+        # Parse internal date
+        # Captures the raw timestamp inside the quotes, e.g., 08-Jul-2026 12:55:23 +0000
+        date_match = re.search(r'INTERNALDATE\s+"([^"]+)"', envelope_str)
+        
         internal_date = None
         if date_match:
-            try:
-                # Convert IMAP timestamp string into a time struct
-                time_struct = time.strptime(date_match.group(1), "%d-%b-%Y %H:%M:%S %z")
-                # Format time struct directly into the format required by the append command
-                internal_date = imaplib.Time2Internaldate(time_struct)
-            except Exception:
-                # Fallback handler in case of unexpected locale or timezone string layout issues
-                internal_date = None        
+            # Wrap the clean date string in literal double quotes as required by IMAP APPEND syntax
+            internal_date = f'"{date_match.group(1)}"'      
                     
         return cls(
             msg=msg,
@@ -84,5 +85,6 @@ class MessageWrapper:
             uid=uid,                 
             uid_validity=uid_validity,
             flags=email_flags,
-            internal_date=internal_date
+            internal_date=internal_date,
+            raw_content=raw_bytes
         )
