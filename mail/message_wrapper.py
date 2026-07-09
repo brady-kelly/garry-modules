@@ -2,11 +2,13 @@ from email.message import EmailMessage
 from email.parser import BytesHeaderParser
 from email.policy import default
 from email.utils import parseaddr
+import imaplib
 import re
+import time
 
 class MessageWrapper:
     
-    def __init__(self, msg: EmailMessage, size: int, uid: bytes, uid_validity: int, flags: list[str]):
+    def __init__(self, msg: EmailMessage, size: int, uid: bytes, uid_validity: int, flags: list[str], internal_date: str | None):
         self.msg = msg
         self.sender = msg['From']
         self.subject = msg['Subject']
@@ -14,6 +16,7 @@ class MessageWrapper:
         self.size = size
         self.uid = uid
         self.uid_validity = uid_validity
+        self.internal_date = internal_date
         
     def print(self):
         print(f"{self.date[:31]:<31} | {self.size:<10} | {self.sender[:40]:<40} | {self.subject[:40]}")
@@ -56,11 +59,30 @@ class MessageWrapper:
         flags_match = re.search(r'FLAGS\s+\(([^)]*)\)', envelope_str)
         # This creates a list of strings, e.g., ['\\Seen', '\\Flagged']
         email_flags: list[str] = flags_match.group(1).split() if flags_match else []
+        
+        # === NEW INTERNALDATE PARSING LOGIC ===
+        # 1. Extract the raw date string from the envelope metadata
+        # Looks for: INTERNALDATE "dd-Mmm-yyyy hh:mm:ss +zzzz"
+        date_match = re.search(r'INTERNALDATE\s+"([^"]+)"', envelope_str)
+        
+        # 2. Convert it directly into an IMAP append-compatible formatted string
+        # If no internal date is found, default to None (server uses current time)
+        internal_date = None
+        if date_match:
+            try:
+                # Convert IMAP timestamp string into a time struct
+                time_struct = time.strptime(date_match.group(1), "%d-%b-%Y %H:%M:%S %z")
+                # Format time struct directly into the format required by the append command
+                internal_date = imaplib.Time2Internaldate(time_struct)
+            except Exception:
+                # Fallback handler in case of unexpected locale or timezone string layout issues
+                internal_date = None        
                     
         return cls(
             msg=msg,
             size=email_size, 
             uid=uid,                 
             uid_validity=uid_validity,
-            flags=email_flags
+            flags=email_flags,
+            internal_date=internal_date
         )
