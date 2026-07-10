@@ -80,7 +80,7 @@ class MailClient:
                     break      
         return uid_validity      
                                 
-    def fetch_headers(self, folder = "Inbox"):        
+    def fetch_headers(self, folder = "Inbox") -> TaskResult:    
         try:
             self.connect()
         except (imaplib.IMAP4.abort, imaplib.IMAP4.error, OSError) as conn_err:
@@ -98,6 +98,10 @@ class MailClient:
         if status != "OK":
             return TaskResult(False, "Failed to search emails.")
         
+        # FIX 1: Explicitly check for missing or empty search data arrays
+        if not search_data or not search_data[0]:
+            return TaskResult(True, "No messages found in folder.", [])        
+        
         uid_validity = self.get_uid_validity(select_data) or 0
     
         uid_bytes_list = search_data[0].split()
@@ -108,7 +112,7 @@ class MailClient:
             uid_str = uid.decode('utf-8') if isinstance(uid, bytes) else str(uid)
             
             try:
-                fetch_status, response_data = self.mail.uid("fetch", uid_str, "(RFC822.SIZE FLAGS INTERNALDATE)")
+                fetch_status, response_data = self.mail.uid("fetch", uid_str, "(RFC822.SIZE FLAGS INTERNALDATE BODY.PEEK[HEADER])")
             except (imaplib.IMAP4.abort, OSError) as net_err:
                 self._is_logged_in = False  # Connection broke mid-loop, must flag it
                 errors.append(f"Network dropped while fetching UID {uid_str}: {str(net_err)}")
@@ -116,8 +120,7 @@ class MailClient:
             except imaplib.IMAP4.error as cmd_err:
                 errors.append(f"Server rejected fetch for UID {uid_str}: {str(cmd_err)}")
                 continue  # Skip this specific message and try the next one
-                
-                
+                                
             if fetch_status != 'OK' or not response_data:
                 errors.append(f"Server returned status {fetch_status} for UID {uid_str}.")
                 continue
@@ -133,11 +136,13 @@ class MailClient:
                 errors.append(f"Failed to parse data for UID {uid_str}: {str(parse_err)}")
                 continue            
             
-            # Return summary of the batch processing operation
-            if not wrappers and errors:
-                return TaskResult(False, f"Failed to get headers. Errors: {'; '.join(errors)}")
-                                
-            return TaskResult(True, f"Processed {len(wrappers)} headers with {len(errors)} errors.", wrappers, errors)
+        if wrappers:
+            return TaskResult(True, f"Processed {len(wrappers)} headers with {len(errors)} errors.", wrappers)
+            
+        if errors:
+            return TaskResult(False, f"Failed to get headers. Errors: {'; '.join(errors)}")
+            
+        return TaskResult(True, "No headers to process.", [])
                         
     def fetch_message(self, wrapper: MessageWrapper) -> TaskResult:        
         try:
