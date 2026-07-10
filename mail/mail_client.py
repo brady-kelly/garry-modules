@@ -4,7 +4,8 @@ from email.utils import parseaddr
 import os
 
 import msal
-from mail_operation_result import MailOperationResult
+from auth import get_msal_token_device_flow, get_msal_token_interactive
+from task_result import TaskResult
 from message_wrapper import MessageWrapper
 
 url_map = {
@@ -38,22 +39,10 @@ class MailClient:
                 "https://outlook.office.com/SMTP.Send"
             ]
 
-            app = msal.PublicClientApplication(client_id, authority=AUTHORITY)
-            
-            # flow = app.initiate_device_flow(scopes=SCOPES)
-            # if "user_code" not in flow:
-            #     raise Exception("Could not initiate authentication flow.")
-            # print(flow["message"]) 
-            # token_result = app.acquire_token_by_device_flow(flow)
-            # if "access_token" not in token_result:
-            #     raise Exception(f"Login failed: {token_result.get('error_description')}")
-            
-            # This pops open a local browser tab pre-filled with your email address
-            token_result = app.acquire_token_interactive(
-                scopes=SCOPES,
-                login_hint=self.account.username
-            )
-            
+            app = msal.PublicClientApplication(client_id, authority=AUTHORITY)        
+
+            #token_result = get_msal_token_device_flow(app, SCOPES)
+            token_result = get_msal_token_interactive(app, SCOPES, self.account.username)            
             access_token = token_result["access_token"]
             
             if "access_token" not in token_result:
@@ -79,15 +68,15 @@ class MailClient:
     def fetch_headers(self, folder = "inbox"):
         self.connect()
         if not isinstance(self.mail, imaplib.IMAP4_SSL):
-            return MailOperationResult(False, f"Couldn't connect to {self.url}")
+            return TaskResult(False, f"Couldn't connect to {self.url}")
         
         status, select_data = self.mail.select(folder, readonly=True)    
         if status != "OK":
-            return MailOperationResult(False, f"Failed to select folder {folder}.")         
+            return TaskResult(False, f"Failed to select folder {folder}.")         
         
         status, search_data = self.mail.uid("search", "ALL")
         if status != "OK":
-            return MailOperationResult(False, "Failed to search emails.")
+            return TaskResult(False, "Failed to search emails.")
         
         uid_validity = self.get_uid_validity(select_data) or 0
     
@@ -107,31 +96,31 @@ class MailClient:
                 errors.append(f"Error fetching metadata for email ID {uid.decode()}: {e}")                
         
         if len(errors) > 0:
-            return MailOperationResult(False, f"{len(errors)} errors fetching headers for folder {folder}: ", wrappers, errors)  
+            return TaskResult(False, f"{len(errors)} errors fetching headers for folder {folder}: ", wrappers, errors)  
         else:
-            return MailOperationResult(True, f"Fetch headers for folder {folder}.", wrappers)  
+            return TaskResult(True, f"Fetch headers for folder {folder}.", wrappers)  
                         
-    def fetch_message(self, wrapper: MessageWrapper) -> MailOperationResult:
+    def fetch_message(self, wrapper: MessageWrapper) -> TaskResult:
         self.connect()
         if not isinstance(self.mail, imaplib.IMAP4_SSL):
-            return MailOperationResult(False, f"Couldn't connect to {self.url}")
+            return TaskResult(False, f"Couldn't connect to {self.url}")
                 
         try:            
             status, response_data = self.mail.uid("fetch", wrapper.uid.decode('utf-8') , "(RFC822 FLAGS INTERNALDATE)")                
             if status == 'OK' and response_data:
                 wrapper = MessageWrapper.from_response_data(wrapper.uid, wrapper.uid_validity, response_data)
-                return MailOperationResult(True, f"Fetched message for id {wrapper.uid}.", [wrapper])  
+                return TaskResult(True, f"Fetched message for id {wrapper.uid}.", [wrapper])  
             else:
-                return MailOperationResult(False, f"Failed to fetch message for id {wrapper.uid}.")  
+                return TaskResult(False, f"Failed to fetch message for id {wrapper.uid}.")  
             
         except Exception as e:   
-            return MailOperationResult(False, f"Error fetching metadata for email ID {wrapper.uid}: {e}")             
+            return TaskResult(False, f"Error fetching metadata for email ID {wrapper.uid}: {e}")             
         
     
     def append_message(self, folder, wrapper: MessageWrapper):
         self.connect()
         if not isinstance(self.mail, imaplib.IMAP4_SSL):
-            return MailOperationResult(False, f"Couldn't connect to {self.url}")
+            return TaskResult(False, f"Couldn't connect to {self.url}")
         
         formatted_flags = " ".join(wrapper.flags) if wrapper.flags else None
         

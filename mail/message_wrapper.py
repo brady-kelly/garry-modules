@@ -69,11 +69,7 @@ class MessageWrapper:
         # 1. Extract the raw date string from the envelope metadata
         # Looks for: INTERNALDATE "dd-Mmm-yyyy hh:mm:ss +zzzz"
         date_match = re.search(r'INTERNALDATE\s+"([^"]+)"', envelope_str)
-        
-        # Parse internal date
-        # Captures the raw timestamp inside the quotes, e.g., 08-Jul-2026 12:55:23 +0000
-        date_match = re.search(r'INTERNALDATE\s+"([^"]+)"', envelope_str)
-        
+               
         internal_date = None
         if date_match:
             # Wrap the clean date string in literal double quotes as required by IMAP APPEND syntax

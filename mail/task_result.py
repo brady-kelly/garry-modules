@@ -1,6 +1,6 @@
 from message_wrapper import MessageWrapper
 
-class MailOperationResult:
+class TaskResult:
     
     def __init__(self, success: bool, message: str, result_list: list[MessageWrapper] = [], error_list: list[str] = []) -> None:
         self.success = success
