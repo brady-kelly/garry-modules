@@ -35,45 +35,36 @@ class MessageWrapper:
         envelope_str = ""
         raw_bytes = b""        
         
-        # 1. Look inside the IMAP tuple response blocks
         for item in response_data:
             if isinstance(item, tuple) and len(item) >= 2:
-                # Extract the metadata string from slot 0
+                # item[0] holds the metadata (e.g., b'1 (RFC822.SIZE 4500 FLAGS (...) INTERNALDATE "...")')
                 if isinstance(item[0], bytes):
                     envelope_str = item[0].decode('utf-8', errors='ignore')
                 else:
                     envelope_str = str(item[0])
                 
-                # Extract the actual data payload from slot 1
+                # item[1] holds the raw RFC822 body bytes
                 if isinstance(item[1], bytes):
                     raw_bytes = item[1]
                     break
                     
-        # 2. Fallback check for raw byte buffers outside of tuples
         if not raw_bytes:
             for item in response_data:
                 if isinstance(item, bytes):
                     raw_bytes = item
                     break
 
+        # Clean and direct: No more hassle guessing bracket sizes
         size_match = re.search(r'RFC822\.SIZE\s+(\d+)', envelope_str)
-        email_size = int(size_match.group(1)) if size_match else 0   
+        email_size = int(size_match.group(1)) if size_match else 0
         
         msg: EmailMessage = BytesHeaderParser(policy=default).parsebytes(raw_bytes if raw_bytes else b"") 
         
         flags_match = re.search(r'FLAGS\s+\(([^)]*)\)', envelope_str)
-        # This creates a list of strings, e.g., ['\\Seen', '\\Flagged']
         email_flags: list[str] = flags_match.group(1).split() if flags_match else []
         
-        # === NEW INTERNALDATE PARSING LOGIC ===
-        # 1. Extract the raw date string from the envelope metadata
-        # Looks for: INTERNALDATE "dd-Mmm-yyyy hh:mm:ss +zzzz"
         date_match = re.search(r'INTERNALDATE\s+"([^"]+)"', envelope_str)
-               
-        internal_date = None
-        if date_match:
-            # Wrap the clean date string in literal double quotes as required by IMAP APPEND syntax
-            internal_date = f'"{date_match.group(1)}"'      
+        internal_date = date_match.group(1) if date_match else None
                     
         return cls(
             msg=msg,

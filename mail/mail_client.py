@@ -1,3 +1,4 @@
+import datetime
 import imaplib
 from email.parser import BytesHeaderParser
 from email.utils import parseaddr
@@ -106,7 +107,7 @@ class MailClient:
             return TaskResult(False, f"Couldn't connect to {self.url}")
                 
         try:            
-            status, response_data = self.mail.uid("fetch", wrapper.uid.decode('utf-8') , "(RFC822 FLAGS INTERNALDATE)")                
+            status, response_data = self.mail.uid("fetch", wrapper.uid.decode('utf-8') , "(RFC822.SIZE FLAGS INTERNALDATE RFC822)")                
             if status == 'OK' and response_data:
                 wrapper = MessageWrapper.from_response_data(wrapper.uid, wrapper.uid_validity, response_data)
                 return TaskResult(True, f"Fetched message for id {wrapper.uid}.", [wrapper])  
@@ -118,18 +119,42 @@ class MailClient:
         
     
     def append_message(self, folder, wrapper: MessageWrapper):
-        self.connect()
-        if not isinstance(self.mail, imaplib.IMAP4_SSL):
-            return TaskResult(False, f"Couldn't connect to {self.url}")
-        
-        formatted_flags = " ".join(wrapper.flags) if wrapper.flags else None
-        
-        self.mail.append(
-            f'"{folder}"', 
-            " ".join(wrapper.flags),  # e.g., "\\Seen \\Flagged"
-            str(wrapper.internal_date), 
-            wrapper.raw_content
-)                
+        try:
+            self.connect()
+            if not isinstance(self.mail, imaplib.IMAP4_SSL):
+                return TaskResult(False, f"Couldn't connect to {self.url}")
+            
+            # FIXED: Safely format flags to be wrapped in parentheses as IMAP expects.
+            # Example: ['\\Seen', '\\Flagged'] -> "(\\Seen \\Flagged)"
+            formatted_flags = f"({' '.join(wrapper.flags)})" if wrapper.flags else "()"
+            
+            if wrapper.internal_date:
+                formatted_date = f'"{wrapper.internal_date}"'
+            else:
+                # Fallback to the current system time formatted perfectly for IMAP
+                now = datetime.datetime.now()
+                formatted_date = now.strftime('"%d-%b-%Y %H:%M:%S +0000"')
+
+            # Execute the append call safely inside a try-except block
+            status, response = self.mail.append(
+                f'"{folder}"', 
+                formatted_flags, 
+                formatted_date, 
+                wrapper.raw_content
+            )    
+            
+            if status == 'OK':
+                return TaskResult(True, f"Successfully appended message to {folder}.")
+            else:
+                return TaskResult(False, f"Server rejected append to {folder}: {response}")
+                
+        except imaplib.IMAP4.error as e:
+            # Catches folder missing errors, full mailboxes, or bad command structure
+            return TaskResult(False, f"IMAP error while appending to {folder}: {str(e)}")
+        except Exception as e:
+            # Catches unexpected network loss or disconnections
+            return TaskResult(False, f"Unexpected error during append: {str(e)}")
+      
     
     # def append_message(self, folder_name: str, message: MailMessage) -> bool:
     #     """
