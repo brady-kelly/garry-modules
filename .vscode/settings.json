@@ -1,4 +1,8 @@
 {
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python-envs.terminal.autoActivationType": "shellStartup",
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.diagnosticMode": "workspace",
     "workbench.editorAssociations": {
         "*.md": "vscode.markdown.preview.editor"
     },
