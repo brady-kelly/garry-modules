@@ -80,7 +80,7 @@ class MailClient:
                     break      
         return uid_validity      
                                 
-    def fetch_headers(self, folder = "Inbox") -> TaskResult:    
+    def fetch_headers(self, folder = "Inbox", limit=20) -> TaskResult:    
         try:
             self.connect()
         except (imaplib.IMAP4.abort, imaplib.IMAP4.error, OSError) as conn_err:
@@ -107,7 +107,8 @@ class MailClient:
         uid_bytes_list = search_data[0].split()
         wrappers = []
         errors = []
-        for uid in uid_bytes_list[:20]:
+        slice_limit = limit if limit is not None else len(uid_bytes_list)
+        for uid in uid_bytes_list[:slice_limit]:
             
             uid_str = uid.decode('utf-8') if isinstance(uid, bytes) else str(uid)
             
