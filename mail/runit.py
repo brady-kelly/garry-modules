@@ -17,8 +17,8 @@ def run_ops():
             for err in headers_result.error_list:
                 print(err)
     else:
-        MessageWrapper.print_heading(len(headers_result.result_list))
         print(f"{len(headers_result.result_list)} headers found")
+        MessageWrapper.print_heading(len(headers_result.result_list))
 
         for info in headers_result.result_list:
             info.print()
