@@ -3,7 +3,7 @@ from email.message import EmailMessage
 from email.parser import BytesHeaderParser
 from email.policy import default
 from email.policy import SMTP
-from email.utils import parseaddr
+from email.utils import parseaddr, parsedate_to_datetime
 import imaplib
 import re
 import time
@@ -26,14 +26,17 @@ class MessageWrapper:
         self.raw_content = raw_content=raw_content
         
     def print(self):
-        print(f"{self.date[:31]:<31} | {self.size:<10} | {self.sender[:40]:<40} | {self.subject[:40]}")
+        try:
+            iso_date = parsedate_to_datetime(self.date).isoformat()
+        except Exception:
+            iso_date = str(self.date)  
+        print(f"{iso_date[:20]:<20} | {self.size:<10} | {self.sender[:40]:<40} | {self.subject[:55]}")
             
     
     @classmethod                
     def print_heading(cls, count):
-        print(f"Found {count} emails in Inbox.\n")        
-        print(f"{'Date':<31} | {'Size (KB)':<10} | {'From':<40} | {'Subject'}")
-        print("-" * 130)          
+        print(f"{'Date':<20} | {'Size (KB)':<10} | {'From':<40} | {'Subject'}")
+        print("-" * 135)          
                 
     @classmethod
     def from_imap_client_data(
