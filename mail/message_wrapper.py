@@ -2,6 +2,7 @@ import datetime
 from email.message import EmailMessage
 from email.parser import BytesHeaderParser
 from email.policy import default
+from email.policy import SMTP
 from email.utils import parseaddr
 import imaplib
 import re
@@ -18,7 +19,10 @@ class MessageWrapper:
         self.uid = uid
         self.uid_validity = uid_validity
         self.flags = flags
-        self.internal_date = internal_date,
+        if isinstance(internal_date, tuple):
+            self.internal_date = datetime.datetime(*internal_date[:6])
+        else:
+            self.internal_date = internal_date
         self.raw_content = raw_content=raw_content
         
     def print(self):
@@ -41,7 +45,8 @@ class MessageWrapper:
         internal_date: datetime.datetime | None, 
         raw_headers: bytes
     ):
-        msg: EmailMessage = BytesHeaderParser(policy=default).parsebytes(raw_headers)        
+        msg: EmailMessage = BytesHeaderParser(policy=default).parsebytes(raw_headers)      
+        raw_content = msg.as_bytes(policy=SMTP)  
         return cls(
             msg=msg,
             size=size,                  
@@ -49,5 +54,5 @@ class MessageWrapper:
             uid_validity=uid_validity,
             flags=flags,                
             internal_date=internal_date,
-            raw_content=b""             
+            raw_content=raw_content         
         )

@@ -13,9 +13,8 @@ def run_ops():
     headers_result = from_client.fetch_headers()
     if not headers_result.success:
         print(headers_result.message)
-        if len(headers_result.error_list) > 0:
-            for err in headers_result.error_list:
-                print(err)
+        for err in headers_result.error_list:
+            print(err)
     else:
         print(f"{len(headers_result.result_list)} headers found")
         MessageWrapper.print_heading(len(headers_result.result_list))
@@ -29,12 +28,16 @@ def run_ops():
             msg: EmailMessage = fetch_result.result_list[0].msg
             print(f"Fetched message: {msg["Subject"]}")
         else:
-            print(f"Error getting message for id {wrapper.uid}: {fetch_result.error_list[0]}")
+            print(f"Error getting message for id {wrapper.uid}: {fetch_result.message}")
+            for err in headers_result.error_list:
+                print(err)
             
-        # append_result = to_client.append_message("Inbox", wrapper)
-        # if append_result.success:
-        #     print(f"Appended message: {msg["Subject"]}")
-        # else:
-        #     print(f"Error appending message for id {wrapper.uid}: {append_result.error_list[0]}")
+        append_result = to_client.append_message("Inbox", wrapper)
+        if append_result.success:
+            print(f"Appended message: {msg["Subject"]}")
+        else:
+            print(f"Error appending message for id {wrapper.uid}: {append_result.message}")
+            for err in headers_result.error_list:
+                print(err)
 
 run_ops()

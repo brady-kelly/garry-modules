@@ -5,7 +5,6 @@ from imapclient import IMAPClient
 from email.parser import BytesHeaderParser
 from email.utils import parseaddr
 import os
-
 import msal
 from auth import get_msal_token_device_flow, get_msal_token_interactive
 from mail_account import MailAccount
@@ -75,23 +74,29 @@ class MailClient:
         self._is_logged_in = True       
         
     def parse_info(self, data):
+        # IMAPClient normalizes key responses to bytes keys
         size = cast(int, data.get(b"RFC822.SIZE", 0))
+        
+        # This natively returns a datetime.datetime object
         date = cast(datetime.datetime | None, data.get(b"INTERNALDATE"))
         
         raw_flags = data.get(b"FLAGS") or []                
         if not isinstance(raw_flags, Iterable) or isinstance(raw_flags, (bytes, str)):
-            raw_flags = [raw_flags]                                                     
+            raw_flags = [raw_flags]      
+                                                
+        # IMAPClient returns flags as a tuple/list of strings or bytes depending on configuration
         flags = [
             f.decode("utf-8") if isinstance(f, bytes) else str(f) 
             for f in cast(Iterable, raw_flags)
         ]  
         
-        return (size, date, flags)              
+        return (size, date, flags)          
                                 
-    def fetch_headers(self, folder = "Inbox", limit=20) -> TaskResult:    
+    def fetch_headers(self, folder="Inbox", limit=20) -> TaskResult:    
         try:
             self.connect()
-        except (imaplib.IMAP4.abort, imaplib.IMAP4.error, OSError) as conn_err:
+        # IMAPClient raises its own exceptions or standard wrapper errors
+        except Exception as conn_err:
             self._is_logged_in = False
             return TaskResult(False, f"Failed to establish/verify connection: {str(conn_err)}")
                 
@@ -99,6 +104,7 @@ class MailClient:
             return TaskResult(False, f"Not connected to {self.url}")        
         
         try:
+            # IMAPClient returns a dictionary with string keys, not bytes
             select_data = self.mail.select_folder(folder, readonly=True)    
         except Exception as select_err:
             return TaskResult(False, f"Failed to select folder {folder}: {str(select_err)}.")         
@@ -111,15 +117,17 @@ class MailClient:
         if not uids:
             return TaskResult(True, "No messages found in folder.", [])           
                         
-        uid_validity = select_data.get(b'UIDVALIDITY', 0)
-    
+        # Look up using string key 'UIDVALIDITY' instead of byte key b'UIDVALIDITY'
+        uid_validity = select_data.get('UIDVALIDITY', 0)
+
         wrappers = []
         errors = []
         slice_limit = limit if limit is not None else len(uids)
         batch_uids = uids[:slice_limit]
         
         try:
-            response_data = self.mail.fetch(batch_uids, ["RFC822.SIZE", "FLAGS", "INTERNALDATE", "BODY.PEEK[HEADER]"])
+            # Note: Changed 'BODY.PEEK[HEADER]' to 'RFC822.HEADER' for clean mapping
+            response_data = self.mail.fetch(batch_uids, ["RFC822.SIZE", "FLAGS", "INTERNALDATE", "RFC822.HEADER"])
         except Exception as net_err:
             self._is_logged_in = False  
             errors.append(f"Network drop or server failure during bulk fetch batch: {str(net_err)}")
@@ -135,15 +143,17 @@ class MailClient:
             try:
                 data = response_data[uid]
                 
-                email_size, internal_date, email_flags = self.parse_info(data)                            
-                raw_header_bytes = cast(bytes, data.get(b"BODY[HEADER]", b""))
+                email_size, internal_date, email_flags = self.parse_info(data)   
+                
+                # IMAPClient returns requested headers as bytes under the matching normalized key
+                raw_header_bytes = cast(bytes, data.get(b"RFC822.HEADER", b""))
                 
                 wrapper = MessageWrapper.from_imap_client_data(
                     uid=uid, 
                     uid_validity=uid_validity, 
                     size=email_size,
                     flags=email_flags,
-                    internal_date=internal_date,
+                    internal_date=internal_date,  # This will be a datetime object now
                     raw_headers=raw_header_bytes
                 )
                 wrappers.append(wrapper)
@@ -159,7 +169,7 @@ class MailClient:
             return TaskResult(False, f"Failed to get headers. Errors: {'; '.join(errors)}")
             
         return TaskResult(True, "No headers to process.", [])
-                        
+  
     def fetch_message(self, wrapper: MessageWrapper) -> TaskResult:        
         try:
             self.connect()
