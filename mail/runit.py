@@ -10,7 +10,7 @@ def run_ops():
     from_client = MailClient(from_account)
     to_client = MailClient(to_account)
 
-    headers_result = from_client.fetch_headers()
+    headers_result = from_client.fetch_headers(limit=50)
     if not headers_result.success:
         print(headers_result.message)
         for err in headers_result.error_list:
