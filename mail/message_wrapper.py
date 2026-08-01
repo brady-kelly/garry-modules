@@ -30,12 +30,12 @@ class MessageWrapper:
             iso_date = parsedate_to_datetime(self.date).isoformat()
         except Exception:
             iso_date = str(self.date)  
-        print(f"{iso_date[:20]:<20} | {self.size:<10} | {self.sender[:40]:<40} | {self.subject[:55]}")
+        print(f"{iso_date[:25]:<25} | {self.size:<10} | {self.sender[:40]:<40} | {self.subject[:55]}")
             
     
     @classmethod                
     def print_heading(cls, count):
-        print(f"{'Date':<20} | {'Size (KB)':<10} | {'From':<40} | {'Subject'}")
+        print(f"{'Date':<25} | {'Size (KB)':<10} | {'From':<40} | {'Subject'}")
         print("-" * 135)          
                 
     @classmethod

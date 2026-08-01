@@ -1,5 +1,5 @@
 from email.message import EmailMessage
-from mail.task_result import TaskResult
+from task_result import TaskResult
 from message_wrapper import MessageWrapper
 from mail_account import MailAccount
 from mail_client import MailClient
@@ -27,21 +27,18 @@ def run_ops():
         print(f"{len(headers_result.result_list)} headers found")
         MessageWrapper.print_heading(len(headers_result.result_list))
 
-        for info in headers_result.result_list:
-            info.print()
+        for wrapper in headers_result.result_list:
+               
+            fetch_result = from_client.fetch_message(wrapper)
+            if fetch_result.success and len(fetch_result.result_list) > 0:
+                msg: EmailMessage = fetch_result.result_list[0].msg
+            else:
+                print_errors(fetch_result, f"Error getting message for id {wrapper.uid}")
                 
-        wrapper = headers_result.result_list[0]
-        fetch_result = from_client.fetch_message(wrapper)
-        if fetch_result.success and len(fetch_result.result_list) > 0:
-            msg: EmailMessage = fetch_result.result_list[0].msg
-            print(f"Fetched message: {msg["Subject"]}")
-        else:
-            print_errors(fetch_result, f"Error getting message for id {wrapper.uid}")
-            
-        append_result = to_client.append_message("Inbox", wrapper)
-        if append_result.success:
-            print(f"Appended message: {msg["Subject"]}")
-        else:
-            print_errors(append_result, f"Error appending message for id {wrapper.uid}")
+            append_result = to_client.append_message("Inbox", wrapper)
+            if append_result.success:
+                wrapper.print()
+            else:
+                print_errors(append_result, f"Error appending message for id {wrapper.uid}")
 
 run_ops()
