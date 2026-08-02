@@ -19,4 +19,4 @@ class MailUtility:
         
         headers_result = client.fetch_headers(limit=50)
         if not headers_result.success:
-            self.print_errors(headers_result)
+            self.print_errors(headers_result, f"Errors fetching headers for account {account.username}")
