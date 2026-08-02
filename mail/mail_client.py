@@ -1,13 +1,13 @@
 import datetime
 import imaplib
+import os
+import msal
 from typing import Iterable, cast
 from imapclient import IMAPClient
 from email.parser import BytesHeaderParser
 from email.utils import parseaddr
 from email.parser import BytesParser
 from email.policy import default
-import os
-import msal
 from auth import get_msal_token_device_flow, get_msal_token_interactive
 from mail_account import MailAccount
 from task_result import TaskResult
@@ -48,7 +48,7 @@ class MailClient:
         print(f"Connecting to host: {self.url}")
         self.mail = IMAPClient(self.url, ssl=True)
 
-        if not self.account.username: #or not self.account.password:
+        if not self.account.username: 
             raise ValueError("Missing IMAP username or password configuration.")
 
         if atkey == "outlook":
