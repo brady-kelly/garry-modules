@@ -1,3 +1,4 @@
+from message_wrapper import MessageWrapper
 from task_result import TaskResult
 from mail_client import MailClient
 from mail_account import MailAccount
@@ -20,3 +21,5 @@ class MailUtility:
         headers_result = client.fetch_headers(limit=50)
         if not headers_result.success:
             self.print_errors(headers_result, f"Errors fetching headers for account {account.username}")
+            
+        MessageWrapper.print_heading(len(headers_result.result_list))
