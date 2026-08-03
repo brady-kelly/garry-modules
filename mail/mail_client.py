@@ -91,7 +91,7 @@ class MailClient:
         
         return (size, date, flags)          
                                 
-    def fetch_headers(self, folder="Inbox", limit=None) -> TaskResult:    
+    def fetch_headers(self, folder="Inbox", limit=None, sort_desc=False) -> TaskResult:    
         try:
             self.connect()
         except Exception as conn_err:
@@ -118,7 +118,8 @@ class MailClient:
 
         wrappers = []
         errors = []
-        batch_uids = uids[:limit]
+        
+        batch_uids = uids[:limit]        
         
         try:
             response_data = self.mail.fetch(batch_uids, ["RFC822.SIZE", "FLAGS", "INTERNALDATE", "RFC822.HEADER"])

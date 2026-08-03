@@ -22,4 +22,7 @@ class MailUtility:
         if not headers_result.success:
             self.print_errors(headers_result, f"Errors fetching headers for account {account.username}")
             
+        print(f"{len(headers_result.result_list)} headers found")
         MessageWrapper.print_heading(len(headers_result.result_list))
+        for wrapper in headers_result.result_list:
+            wrapper.print()
