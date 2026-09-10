@@ -61,14 +61,23 @@ class MailClient:
                 "https://outlook.office.com/SMTP.Send"
             ]
 
-            app = msal.PublicClientApplication(client_id, authority=AUTHORITY)        
-            token_result = get_msal_token_interactive(app, SCOPES, self.account.username)            
-            access_token = token_result["access_token"]
+            try:
+                app = msal.PublicClientApplication(client_id, authority=AUTHORITY)        
+                token_result = get_msal_token_interactive(app, SCOPES, self.account.username)            
+                #access_token = token_result["access_token"]
+                
+                if "access_token" not in token_result:
+                    error_msg = token_result.get('error_description') or token_result.get('error', 'Unknown MSAL error')
+                    raise Exception(f"Login failed: {error_msg}")       
+                
+                access_token = token_result["access_token"]
+                print(f"Token: {access_token}")
+                self.mail.oauth2_login(self.account.username, access_token)                    
+            except Exception as auth_err:
+                print(auth_err)
+                return
             
-            if "access_token" not in token_result:
-                raise Exception(f"Login failed: {token_result.get('error_description')}")       
-            
-            self.mail.oauth2_login(self.account.username, access_token)             
+         
         else:
             if not self.account.username or not self.account.password:
                 raise ValueError("Missing IMAP username or password configuration.")
