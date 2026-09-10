@@ -1,8 +1,8 @@
-from mail_utility import MailUtility
+from mail.mail_mover import MailMover
 
 
 def main():
-    util = MailUtility()
+    util = MailMover()
     util.print_headers("Outlook")
     
     

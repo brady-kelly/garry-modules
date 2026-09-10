@@ -91,7 +91,7 @@ class MailClient:
         
         return (size, date, flags)          
                                 
-    def fetch_headers(self, folder="Inbox", limit=None, sort_desc=False) -> TaskResult:    
+    def fetch_headers(self, folder="Inbox", limit = None, sort_desc=False) -> TaskResult:    
         try:
             self.connect()
         except Exception as conn_err:
@@ -233,3 +233,24 @@ class MailClient:
             return TaskResult(False, f"Server rejected append (possible missing folder): {str(err)}")
 
         return TaskResult(True, f"Successfully appended message to {folder}.")
+    
+    def delete_message(self, wrapper: MessageWrapper) -> TaskResult:
+        try:
+            self.connect()
+        except (imaplib.IMAP4.abort, imaplib.IMAP4.error, IMAPClientError, OSError) as conn_err:
+            self._is_logged_in = False
+            return TaskResult(False, f"Failed to establish/verify connection: {str(conn_err)}")
+                
+        if not self.mail:
+            return TaskResult(False, f"Not connected to {self.url}")  
+        
+        try:
+            self.mail.delete_messages(wrapper.uid)
+                            
+        except Exception as err:
+            if "abort" in str(err).lower() or "connection" in str(err).lower():
+                self._is_logged_in = False  
+                return TaskResult(False, f"Network dropped during append: {str(err)}")                
+            return TaskResult(False, f"Server rejected append (possible missing folder): {str(err)}")        
+        
+        return TaskResult(True, f"Successfully deleted message: {wrapper.uid}.")

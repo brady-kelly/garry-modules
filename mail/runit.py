@@ -28,7 +28,7 @@ def run_ops():
         MessageWrapper.print_heading(len(headers_result.result_list))
 
         for wrapper in headers_result.result_list:
-               
+    
             fetch_result = from_client.fetch_message(wrapper)
             if fetch_result.success and len(fetch_result.result_list) > 0:
                 msg: EmailMessage = fetch_result.result_list[0].msg
