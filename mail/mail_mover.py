@@ -41,7 +41,8 @@ class MailMover:
             self.print_errors(headers_result, f"Errors fetching headers for account {from_account.username}")                   
             return
         
-        print(f"{len(headers_result.result_list)} headers found")
+        to_client.connect()
+        print(f"Moving {len(headers_result.result_list)} messages:")
         MessageWrapper.print_heading(len(headers_result.result_list))
         
         moved: list[int] = []

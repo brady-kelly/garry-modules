@@ -1,9 +1,9 @@
-from mail.mail_mover import MailMover
+from mail_mover import MailMover
 
 
 def main():
     util = MailMover()
-    util.print_headers("Outlook")
+    util.move_messages("Outlook", "GMail")
     
     
 main()
