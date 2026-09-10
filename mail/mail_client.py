@@ -234,23 +234,23 @@ class MailClient:
 
         return TaskResult(True, f"Successfully appended message to {folder}.")
     
-    def delete_message(self, wrapper: MessageWrapper) -> TaskResult:
-        try:
-            self.connect()
-        except (imaplib.IMAP4.abort, imaplib.IMAP4.error, IMAPClientError, OSError) as conn_err:
-            self._is_logged_in = False
-            return TaskResult(False, f"Failed to establish/verify connection: {str(conn_err)}")
+    # def delete_messages(self, ids: list[int]) -> TaskResult:
+    #     try:
+    #         self.connect()
+    #     except (imaplib.IMAP4.abort, imaplib.IMAP4.error, IMAPClientError, OSError) as conn_err:
+    #         self._is_logged_in = False
+    #         return TaskResult(False, f"Failed to establish/verify connection: {str(conn_err)}")
                 
-        if not self.mail:
-            return TaskResult(False, f"Not connected to {self.url}")  
+    #     if not self.mail:
+    #         return TaskResult(False, f"Not connected to {self.url}")  
         
-        try:
-            self.mail.delete_messages(wrapper.uid)
+    #     try:
+    #         self.mail.delete_messages(ids)
                             
-        except Exception as err:
-            if "abort" in str(err).lower() or "connection" in str(err).lower():
-                self._is_logged_in = False  
-                return TaskResult(False, f"Network dropped during append: {str(err)}")                
-            return TaskResult(False, f"Server rejected append (possible missing folder): {str(err)}")        
+    #     except Exception as err:
+    #         if "abort" in str(err).lower() or "connection" in str(err).lower():
+    #             self._is_logged_in = False  
+    #             return TaskResult(False, f"Network dropped during delete: {str(err)}")                
+    #         return TaskResult(False, f"Server rejected append (possible missing folder): {str(err)}")        
         
-        return TaskResult(True, f"Successfully deleted message: {wrapper.uid}.")
+    #     return TaskResult(True, f"Successfully deleted messages.")
